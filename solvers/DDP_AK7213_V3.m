@@ -15,7 +15,7 @@ function [aOpt, xOpt, ipmIter] = DDP_AK7213_V3(n, N, l, m, s, step, P, xBar, ipm
 % solverTol:  used for iterative solvers like minres and cgs
 
 %% IPM Solver Setup
-fprintf('Starting IPM v23 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
+fprintf('Starting DDP_AK7213_V3 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
 
 nl = n * l;
 nd = n + 1 + nl;
@@ -314,5 +314,8 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     dualGap(ipmIter+1) = ( lambda(:)' * t(:) )/(nd*N);
     %fprintf('End of iteration [%d] - DualGap: %3.8f -> %3.8f\n',ipmIter, dualGap(ipmIter), dualGap(ipmIter+1));
     ipmIter = ipmIter+1;
+end
+if dualGap(ipmIter) > ipmTol 
+    fprintf('Failed to find Solution\n')
 end
 end

@@ -15,11 +15,10 @@ function [aOpt, xOpt, ipmIter] = DDP_AK7213_V4_CGS(n, N, l, m, s, step, P, xBar,
 % solverTol:  used for iterative solvers like minres and cgs
 
 %% IPM Solver Setup
-fprintf('Starting IPM v23 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
+fprintf('Starting DDP_AK7213_V4_CGS for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
 
 nl = n * l;
 nd = n + 1 + nl;
-solverMaxIter = 20000;
 ipmIter = 1;
 
 nj = ceil(n/N);
@@ -138,7 +137,7 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
 
 
     %% Solve Predictor Problem with Custom CGS
-    PSOL = ak7213_cgs(U,V,PRHS,Rho,solverTol);
+    PSOL = cgsCustom(U,V,PRHS,Rho,solverTol);
 
     %% Set Affine Parameters from Predictor Solution
     affDx = zeros(n,N);        % k = 1,...,N
@@ -239,7 +238,7 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     %fprintf('[%d] Corrector RHS complete: %3.5fs\n',ipmIter, tcRHS(ipmIter));
 
 	%% SOLVE CORRECTOR
-    CSOL = ak7213_cgs(U,V,CRHS,Rho,solverTol);
+    CSOL = cgsCustom(U,V,CRHS,Rho,solverTol);
 
     %% Set Corrector Parameters from Predictor Solution
     ccDx = zeros(n,N);        % k = 1,...,N
@@ -319,5 +318,8 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     dualGap(ipmIter+1) = ( lambda(:)' * t(:) )/(nd*N);
     %fprintf('End of iteration [%d] - DualGap: %3.8f -> %3.8f\n',ipmIter, dualGap(ipmIter), dualGap(ipmIter+1));
     ipmIter = ipmIter+1;
+end
+if dualGap(ipmIter) > ipmTol 
+    fprintf('Failed to find Solution\n')
 end
 end

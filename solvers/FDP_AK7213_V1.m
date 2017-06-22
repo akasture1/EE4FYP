@@ -377,6 +377,7 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     %fprintf('End of iteration [%d] - DualGap: %3.8f --> %3.8f\n',ipmIter, dualGap(ipmIter), dualGap(ipmIter+1));
     ipmIter = ipmIter+1;
 end
-
-fprintf('Completed FDP_AK7213_V1 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
+if dualGap(ipmIter) > ipmTol 
+    fprintf('Failed to find Solution\n')
+end
 end
