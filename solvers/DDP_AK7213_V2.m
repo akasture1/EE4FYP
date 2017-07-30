@@ -1,4 +1,4 @@
-function [aOpt, xOpt, ipmIter] = DDP_AK7213_V2(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol)
+function [aOpt, xOpt, ipmIter] = DDP_AK7213_V2(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol, solverMaxIter)
 
 %% Function Argument Definitions
 % n:          scalar number of tasks
@@ -19,7 +19,6 @@ fprintf('Starting DDP_AK7213_V2 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
 
 nl = n * l;
 nd = n + 1 + nl;
-solverMaxIter = 20000;
 ipmIter = 1;
 
 nj = ceil(n/N);

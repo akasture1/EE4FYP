@@ -1,4 +1,4 @@
-function [aOpt, xOpt, ipmIter] = DDP_AK7213_V5_CGS(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol)
+function [aOpt, xOpt, ipmIter, cgsIters] = DDP_AK7213_V5_CGS(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol, solverMaxIter)
 
 %% Function Argument Definitions
 % n:          scalar number of tasks
@@ -39,6 +39,7 @@ beta = ones(nj,N);          % k = 1,...,N
 alphaVec = zeros(ipmMaxIter,1);
 sigmaVec = zeros(ipmMaxIter,1);
 dualGap = zeros(ipmMaxIter+1,1);
+cgsIters = zeros(ipmMaxIter,2);
 
 %% Constant LHS Componentsd = [ones(n,1); m; zeros(nl,1)];
 d = [ones(n,1); m; zeros(nl,1)];
@@ -164,8 +165,9 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     PRHS = PRHS - rbeta(:);
 
     %% Solve Predictor Problem using Custom CGS
-    PSOL = cgsCustom(U,V,PRHS,Rho,solverTol);
-
+    [PSOL, cgsIter] = cgsCustom(U,V,PRHS,Rho,solverTol,solverMaxIter);
+    cgsIters(ipmIter,1) = cgsIter;
+    
     %% Set Affine Parameters from Predictor Solution
     affDx = zeros(n,N);        % k = 1,...,N
     affDa = zeros(nl,N);       % k = 0,...,N-1
@@ -295,8 +297,9 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
     %fprintf('[%d] Corrector RHS complete: %3.5fs\n',ipmIter, tcRHS(ipmIter));
 
 	%% Solve Corrector Problem using Custom CGS
-    CSOL = cgsCustom(U,V,CRHS,Rho,solverTol);
-
+    [CSOL, cgsIter] = cgsCustom(U,V,CRHS,Rho,solverTol,solverMaxIter);
+    cgsIters(ipmIter,2) = cgsIter;
+    
     %% Set Corrector Parameters from Predictor Solution
     ccDx = zeros(n,N);        % k = 1,...,N
     ccDa = zeros(nl,N);       % k = 0,...,N-1
@@ -386,4 +389,5 @@ end
 if dualGap(ipmIter) > ipmTol 
     fprintf('Failed to find Solution\n')
 end
+cgsIters = cgsIters(1:ipmIter-1,:);
 end

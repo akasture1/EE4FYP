@@ -1,4 +1,4 @@
-function [aOpt, xOpt, ipmIter] = DDP_AK7213_V4(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol)
+function [aOpt, xOpt, ipmIter, cgsIters] = DDP_AK7213_V4(n, N, l, m, s, step, P, xBar, ipmTol, ipmMaxIter, solver, solverTol, solverMaxIter)
 
 %% Function Argument Definitions
 % n:          scalar number of tasks
@@ -19,7 +19,6 @@ fprintf('Starting DDP_AK7213_V4 for n=%d; N=%d; l=%d; m=%d\n',n,N,l,m);
 
 nl = n * l;
 nd = n + 1 + nl;
-solverMaxIter = 20000;
 ipmIter = 1;
 
 nj = ceil(n/N);
@@ -40,7 +39,7 @@ beta = ones(nj,N);          % k = 1,...,N
 alphaVec = zeros(ipmMaxIter,1);
 sigmaVec = zeros(ipmMaxIter,1);
 dualGap = zeros(ipmMaxIter+1,1);
-
+cgsIters = zeros(ipmMaxIter,2);
 %% Constant LHS Componentsd = [ones(n,1); m; zeros(nl,1)];
 d = [ones(n,1); m; zeros(nl,1)];
 
@@ -142,7 +141,8 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
       case 2
         PSOL = minres(LHS, PRHS, solverTol, solverMaxIter);
       case 3
-        PSOL = cgs(LHS, PRHS, solverTol, solverMaxIter);
+        [PSOL,~,~,cgsIter] = cgs(LHS, PRHS, solverTol, solverMaxIter);
+        cgsIters(ipmIter,1) = cgsIter;
     end
 
     %% Set Affine Parameters from Predictor Solution
@@ -199,7 +199,7 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
             end
         end
     end
-    affAlphaVec(ipmIter) = affAlpha;
+    %affAlphaVec(ipmIter) = affAlpha;
     %fprintf('[%d] Affine Alpha (Step Length): %3.8f\n',ipmIter, affAlpha);
 
     %% Calculate Sigma
@@ -250,7 +250,8 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
       case 2
         CSOL = minres(LHS, CRHS, solverTol, solverMaxIter);
       case 3
-        CSOL = cgs(LHS, CRHS, solverTol, solverMaxIter);
+        [CSOL,~,~,cgsIter] = cgs(LHS, CRHS, solverTol, solverMaxIter);
+        cgsIters(ipmIter,2) = cgsIter;
     end
 
     %% Set Corrector Parameters from Predictor Solution
@@ -334,5 +335,8 @@ while dualGap(ipmIter) > ipmTol && ipmIter <= ipmMaxIter
 end
 if dualGap(ipmIter) > ipmTol 
     fprintf('Failed to find Solution\n')
+end
+if solver == 3 
+    cgsIters = cgsIters(1:ipmIter-1,:);
 end
 end

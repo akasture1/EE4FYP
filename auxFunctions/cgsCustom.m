@@ -1,4 +1,4 @@
-function [ x, iter ] = cgsCustom(U,V,b,Mu,tol)
+function [ x, iter ] = cgsCustom(U,V,b,Mu,tol,maxIter)
     N = size(U,2);
     x = b;
     
@@ -13,7 +13,7 @@ function [ x, iter ] = cgsCustom(U,V,b,Mu,tol)
         return
     end
     
-    for iter = 1:length(b)
+    for iter = 1:maxIter
         % Compute F = A*d1
         F = zeros(length(b),1);
         
